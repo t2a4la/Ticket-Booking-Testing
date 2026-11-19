@@ -21,5 +21,19 @@ public class BookingManager {
         if (request == null || !request.isValid()) {
             throw new IllegalArgumentException("Invalid booking request");
         }
+        if (eventRepository.isSoldOut(request.getEventId())) {
+            throw new IllegalStateException("Event is sold out");
+        }
+        int amount = request.getSubtotal();
+
+        String transactionId = paymentGateway.processPayment(amount);
+
+        if (transactionId == null || transactionId.isBlank()) {
+            throw new IllegalStateException("Payment failed");
+        }
+        eventRepository.saveBooking(request);
+        notificationService.sendBookingConfirmation(
+                request.getCustomerId(),
+                request.getEventId());
     }
 }
