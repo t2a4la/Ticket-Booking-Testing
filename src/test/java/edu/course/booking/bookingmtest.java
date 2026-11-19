@@ -1,6 +1,7 @@
 
 package edu.course.booking;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -114,5 +115,38 @@ void shouldRejectBookingWhenPaymentFails() {
 
         verify(eventRepository, never()).saveBooking(any());
         verifyNoInteractions(notificationService);
+}
+@ParameterizedTest
+@CsvSource({
+    "0, 2500",
+    "6, 2500",
+    "-1, 2500",
+    "2, 0",
+    "2, -100"
+})
+void shouldRejectInvalidBookingData(
+        int quantity, int price) {
+
+    BookingRequest request =
+            new BookingRequest("C1", "E1", quantity, price);
+
+    IPaymentGateway paymentGateway = mock(IPaymentGateway.class);
+    INotificationService notificationService = mock(INotificationService.class);
+    IEventRepository eventRepository = mock(IEventRepository.class);
+
+    BookingManager manager = new BookingManager(
+            paymentGateway,
+            notificationService,
+            eventRepository
+    );
+
+    assertThrows(IllegalArgumentException.class,
+            () -> manager.book(request));
+
+    verifyNoInteractions(
+            paymentGateway,
+            notificationService,
+            eventRepository
+    );
 }
 }
