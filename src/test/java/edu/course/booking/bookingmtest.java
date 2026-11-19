@@ -10,7 +10,7 @@ class BookingManagerTest {
     void shouldRejectInvalidTicketQuantity() {
         BookingRequest request = new BookingRequest("C1", "E1", 6, 2500);
 
-        assertEquals(6, request.getTicketQuantity());
+       assertFalse(request.isValid());
     }
 
     @Test

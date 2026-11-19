@@ -31,4 +31,14 @@ public class BookingRequest {
     public int getPricePerTicketInCents() {
         return pricePerTicketInCents;
     }
+
+    public boolean isValid() {
+        return customerId != null && !customerId.isBlank()
+                && eventId != null && !eventId.isBlank()
+                && ticketQuantity >= 1 && ticketQuantity <= 5
+                && pricePerTicketInCents > 0;
+    }
+    public int getSubtotal() {
+    return ticketQuantity * pricePerTicketInCents;
+}
 }
