@@ -33,4 +33,29 @@ BookingManager manager = new BookingManager(
         assertThrows(IllegalArgumentException.class,
                 () -> manager.book(request));
     }
+    
+    @Test
+    void shouldCompleteSuccessfulBooking() {
+
+        BookingRequest request = new BookingRequest("C1", "E1", 2, 2500);
+
+        IPaymentGateway paymentGateway = mock(IPaymentGateway.class);
+        INotificationService notificationService = mock(INotificationService.class);
+        IEventRepository eventRepository = mock(IEventRepository.class);
+
+        when(eventRepository.isSoldOut("E1")).thenReturn(false);
+        when(paymentGateway.processPayment(5000)).thenReturn("TX123");
+
+        BookingManager manager = new BookingManager(
+                paymentGateway,
+                notificationService,
+                eventRepository);
+
+        manager.book(request);
+
+        verify(eventRepository).isSoldOut("E1");
+        verify(paymentGateway).processPayment(5000);
+        verify(eventRepository).saveBooking(request);
+        verify(notificationService).sendBookingConfirmation("C1", "E1");
+    }
 }
