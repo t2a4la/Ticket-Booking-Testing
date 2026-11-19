@@ -58,4 +58,34 @@ BookingManager manager = new BookingManager(
         verify(eventRepository).saveBooking(request);
         verify(notificationService).sendBookingConfirmation("C1", "E1");
     }
+    @Test
+void shouldRejectBookingWhenEventIsSoldOut() {
+
+    BookingRequest request =
+            new BookingRequest("C1", "E1", 2, 2500);
+
+    IPaymentGateway paymentGateway = mock(IPaymentGateway.class);
+    INotificationService notificationService = mock(INotificationService.class);
+    IEventRepository eventRepository = mock(IEventRepository.class);
+
+    when(eventRepository.isSoldOut("E1")).thenReturn(true);
+
+    BookingManager manager = new BookingManager(
+            paymentGateway,
+            notificationService,
+            eventRepository
+    );
+
+    assertThrows(IllegalStateException.class,
+            () -> manager.book(request));
+
+    verify(eventRepository, times(1)).isSoldOut("E1");
+
+    verifyNoInteractions(
+            paymentGateway,
+            notificationService
+    );
+
+    verify(eventRepository, never()).saveBooking(any());
+}
 }
