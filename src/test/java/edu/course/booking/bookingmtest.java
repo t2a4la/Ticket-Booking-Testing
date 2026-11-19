@@ -149,4 +149,44 @@ void shouldRejectInvalidBookingData(
             eventRepository
     );
 }
+
+@ParameterizedTest
+@CsvSource({
+                "NULL, E1",
+                "'', E1",
+                "'   ', E1",
+                "C1, NULL",
+                "C1, ''",
+                "C1, '   '"
+})
+void shouldRejectInvalidCustomerOrEventId(
+                String customerId, String eventId) {
+
+        if ("NULL".equals(customerId)) {
+                customerId = null;
+        }
+
+        if ("NULL".equals(eventId)) {
+                eventId = null;
+        }
+
+        BookingRequest request = new BookingRequest(customerId, eventId, 2, 2500);
+
+        IPaymentGateway paymentGateway = mock(IPaymentGateway.class);
+        INotificationService notificationService = mock(INotificationService.class);
+        IEventRepository eventRepository = mock(IEventRepository.class);
+
+        BookingManager manager = new BookingManager(
+                        paymentGateway,
+                        notificationService,
+                        eventRepository);
+
+        assertThrows(IllegalArgumentException.class,
+                        () -> manager.book(request));
+
+        verifyNoInteractions(
+                        paymentGateway,
+                        notificationService,
+                        eventRepository);
+}
 }
