@@ -16,7 +16,7 @@ public class BookingManager {
         this.eventRepository = eventRepository;
     }
 
-    public void book(BookingRequest request) {
+    public BookingResult book(BookingRequest request) {
 
         if (request == null || !request.isValid()) {
             throw new IllegalArgumentException("Invalid booking request");
@@ -35,5 +35,6 @@ public class BookingManager {
         notificationService.sendBookingConfirmation(
                 request.getCustomerId(),
                 request.getEventId());
+        return new BookingResult(transactionId);
     }
 }

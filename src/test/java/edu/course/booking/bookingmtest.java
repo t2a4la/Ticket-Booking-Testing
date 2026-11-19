@@ -1,12 +1,20 @@
 
 package edu.course.booking;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class BookingManagerTest {
 
@@ -188,5 +196,28 @@ void shouldRejectInvalidCustomerOrEventId(
                         paymentGateway,
                         notificationService,
                         eventRepository);
+}
+
+@Test
+void shouldReturnTransactionIdAfterSuccessfulBooking() {
+
+        BookingRequest request = new BookingRequest("C1", "E1", 2, 2500);
+
+        IPaymentGateway paymentGateway = mock(IPaymentGateway.class);
+        INotificationService notificationService = mock(INotificationService.class);
+        IEventRepository eventRepository = mock(IEventRepository.class);
+
+        when(eventRepository.isSoldOut("E1")).thenReturn(false);
+        when(paymentGateway.processPayment(5000)).thenReturn("TX123");
+
+        BookingManager manager = new BookingManager(
+                        paymentGateway,
+                        notificationService,
+                        eventRepository);
+
+        BookingResult result = manager.book(request);
+
+        assertNotNull(result);
+        assertEquals("TX123", result.getTransactionId());
 }
 }
